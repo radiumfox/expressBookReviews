@@ -1,7 +1,8 @@
 const express = require('express');
-let books = require("./booksdb.js");
-let isValid = require("./auth_users.js").isValid;
-let users = require("./auth_users.js").users;
+let books = require('./booksdb.js');
+let isValid = require('./auth_users.js').isValid;
+let doesUserExists = require('./auth_users.js').doesUserExists;
+let users = require('./auth_users.js').users;
 const public_users = express.Router();
 
 const getAllBooks = () => {
@@ -21,7 +22,7 @@ const getBookByIsbn = (isbn) => {
         const book = books[isbn];
 
         if(!book) {
-          reject({ message: "Book not found" });
+          reject({ message: 'Book not found' });
         }
 
         resolve(book);
@@ -47,7 +48,7 @@ const getBookByAuthor = (author) => {
         }
 
         if(!booksList.length) {
-          reject({ message: "Books not found" });
+          reject({ message: 'Books not found' });
         }
 
         resolve(booksList);
@@ -69,7 +70,7 @@ const getBookByTitle = (title) => {
         const book = Object.values(books).find(item => item.title.toLowerCase() === lowercaseTitle);
 
         if(!book) {
-          reject({ message: "Book not found" });
+          reject({ message: 'Book not found' });
         }
 
         resolve(book);
@@ -89,7 +90,7 @@ const getReviewsByIsbn = (isbn) => {
         const book = books[isbn];
 
         if(!book) {
-          reject({ message: "Book not found" });
+          reject({ message: 'Book not found' });
         }
 
         resolve(book.reviews);
@@ -102,25 +103,23 @@ const getReviewsByIsbn = (isbn) => {
   })
 }
 
-public_users.post("/register", (req,res) => {
+public_users.post('/register', (req,res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  let userExists = users.find((user) => {
-    return user.username === username;
-  });
+  const isUserNameValid = isValid(username);
 
-  if(username && password) {
-    if(!userExists) {
+  if(username && password && isUserNameValid) {
+    if(!doesUserExists(username)) {
       users.push({ username, password });
 
-      return res.status(200).json({ message: "User successfully registered. Now you can login" });
+      return res.status(200).json({ message: 'User successfully registered. Now you can login' });
     } else {
-      return res.status(409).json({ message: "User already exists!" });
+      return res.status(409).json({ message: 'User already exists!' });
     }
   }
 
-  return res.status(400).json({ message: "Unable to register user, username or password is incorrect" });
+  return res.status(400).json({ message: 'Unable to register user, username or password is incorrect' });
 });
 
 // Get the book list available in the shop
