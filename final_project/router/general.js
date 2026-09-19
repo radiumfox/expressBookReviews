@@ -2,7 +2,10 @@ const express = require('express');
 let books = require('./booksdb.js');
 let isValid = require('./auth_users.js').isValid;
 let users = require('./auth_users.js').users;
+const axios = require('axios');
 const public_users = express.Router();
+
+const BASE_URL = 'http://localhost:5000';
 
 public_users.post('/register', (req,res) => {
   const username = req.body.username;
@@ -12,7 +15,7 @@ public_users.post('/register', (req,res) => {
     return user.username === username;
   });
 
-  if(username && password) {
+  if(username && password && isValid(username)) {
     if(!userExists) {
       users.push({ username, password });
 
@@ -107,4 +110,44 @@ public_users.get('/review/:isbn',function (req, res) {
   return res.status(400).json({ message: 'No ISBN provided' });
 });
 
+const getAllBooks = async () => {
+  try {
+    const result = await axios.get(BASE_URL);
+    return result.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const getBookByIsbn = async (isbn) => {
+  try {
+    const result = await axios.get(`${BASE_URL}/isbn/${isbn}`);
+    return result.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const getBookByAuthor = async (author) => {
+  try {
+    const result = await axios.get(`${BASE_URL}/author/${author}`);
+    return result.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const getBookByTitle = async (title) => {
+  try {
+    const result = await axios.get(`${BASE_URL}/title/${title}`);
+    return result.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 module.exports.general = public_users;
+module.exports.getAllBooks = getAllBooks;
+module.exports.getBookByIsbn = getBookByIsbn;
+module.exports.getBookByAuthor = getBookByAuthor;
+module.exports.getBookByTitle = getBookByTitle;
